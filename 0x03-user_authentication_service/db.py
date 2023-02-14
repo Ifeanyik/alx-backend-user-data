@@ -36,3 +36,29 @@ class DB:
         self._session.add(new_user)
         self._session.commit()
         return new_user
+
+    def find_user_by(self, **kwargs: dict) -> User:
+        """Find user in database"""
+        try:
+            user_filter = self._session.query(User).filter_by(**kwargs).first()
+        except TypeError:
+            raise InvalidRequestError
+
+        if user_filter is None:
+            raise NoResultFound
+
+        return user_filter
+
+    def update_user(self, user_id: int, **kwargs) -> None:
+        """
+        update properties of an user
+        """
+        user = self.find_user_by(id=user_id)
+        names_columns = User.__table__.columns.keys()
+
+        for key in kwargs.keys():
+            if key not in names_columns:
+                raise ValueError
+
+        for key, value in kwargs.items():
+            setattr(user, key, value)
